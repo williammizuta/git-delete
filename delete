@@ -3,8 +3,13 @@
 project_home=`git rev-parse --show-toplevel`
 
 git gc --quiet
-hashes=( `git verify-pack -v ${project_home}/.git/objects/pack/*.idx | sort -k 3 -n | tail -5 | awk '{print $1}'` )
+hashes=( `git verify-pack -v $project_home/.git/objects/pack/*.idx | sort -k 3 -n | tail -5 | awk '{print $1}'` )
 
+files=()
 for hash in ${hashes[@]}; do
-	echo ${hash}
+	files+=( `git rev-list --objects --all | grep $hash | awk '{print $2}'` )
+done
+
+for file in ${files[@]}; do
+	echo $file
 done
