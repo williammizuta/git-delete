@@ -1,9 +1,15 @@
 #!/bin/sh
 
 PROJECT_HOME=`git rev-parse --show-toplevel`
+NUMBER_OF_FILES=5
 
 function get_biggest_files_hash() {
 	local hashes=`git verify-pack -v $PROJECT_HOME/.git/objects/pack/*.idx | sort -k 3 -n | tail -$1 | awk '{print $1}'`
+	echo "$hashes"
+}
+
+function get_biggest_files_size() {
+	local hashes=`git verify-pack -v $PROJECT_HOME/.git/objects/pack/*.idx | sort -k 3 -n | tail -$1 | awk '{print $3}'`
 	echo "$hashes"
 }
 
@@ -16,13 +22,14 @@ function get_file_name() {
 # main #
 ########
 git gc --quiet
-hashes=( $(get_biggest_files_hash 5) )
+hashes=( $(get_biggest_files_hash $NUMBER_OF_FILES) )
+sizes=( $(get_biggest_files_size $NUMBER_OF_FILES) )
 
 files=()
 for hash in ${hashes[@]}; do
 	files+=( $(get_file_name $hash) )
 done
 
-for file in ${files[@]}; do
-	echo $file
+for ((i=0; i<$NUMBER_OF_FILES; i++)); do
+	echo ${files[$i]} ${sizes[$i]}
 done
