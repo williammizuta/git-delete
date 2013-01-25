@@ -1,0 +1,10 @@
+#!/bin/sh
+
+project_home=`git rev-parse --show-toplevel`
+
+git gc --quiet
+hashes=( `git verify-pack -v ${project_home}/.git/objects/pack/*.idx | sort -k 3 -n | tail -5 | awk '{print $1}'` )
+
+for hash in ${hashes[@]}; do
+	echo ${hash}
+done
