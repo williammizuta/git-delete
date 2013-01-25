@@ -1,13 +1,26 @@
 #!/bin/sh
 
-project_home=`git rev-parse --show-toplevel`
+PROJECT_HOME=`git rev-parse --show-toplevel`
 
+function get_biggest_files_hash() {
+	local hashes=`git verify-pack -v $PROJECT_HOME/.git/objects/pack/*.idx | sort -k 3 -n | tail -$1 | awk '{print $1}'`
+	echo "$hashes"
+}
+
+function get_file_name() {
+	local file_name=`git rev-list --objects --all | grep $1 | awk '{print $2}'`
+	echo "$file_name" 
+}
+
+########
+# main #
+########
 git gc --quiet
-hashes=( `git verify-pack -v $project_home/.git/objects/pack/*.idx | sort -k 3 -n | tail -5 | awk '{print $1}'` )
+hashes=( $(get_biggest_files_hash 5) )
 
 files=()
 for hash in ${hashes[@]}; do
-	files+=( `git rev-list --objects --all | grep $hash | awk '{print $2}'` )
+	files+=( $(get_file_name $hash) )
 done
 
 for file in ${files[@]}; do
