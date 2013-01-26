@@ -1,7 +1,7 @@
 #!/bin/sh
 
 PROJECT_HOME=`git rev-parse --show-toplevel`
-NUMBER_OF_FILES=5
+NUMBER_OF_FILES=10
 
 FILES_TO_REMOVE=$( mktemp )
 trap "rm $FILES_TO_REMOVE" EXIT
@@ -29,12 +29,31 @@ function get_biggest_files_name() {
 	done
 }
 
+function verify_if_files_exist_now() {
+	exists=()
+	for file in ${files[@]}; do
+		git ls-files | grep -w $file
+		if [ $? -eq 0 ]; then
+			exists+=( '*' )
+		else
+			exists+=( ' ' )
+		fi
+	done
+}
+
 function show_menu() {
 	local options=()
 	for ((i=0; i<$NUMBER_OF_FILES; i++)); do
-		options+=("${files[$i]}" "${sizes[$i]}" "ON")
+		if [ $i -lt ${#files[@]} ]; then
+			if [ "${exists[$i]}" == "*" ]; then
+				options+=("${files[$i]}" "       ${sizes[$i]}${exists[$i]}   " "OFF")
+			else
+				options+=("${files[$i]}" "       ${sizes[$i]}${exists[$i]}   " "ON")
+			fi
+		fi
 	done
-	whiptail --title 'git delete' --checklist "Select files to be removed" $(($NUMBER_OF_FILES + 12)) 60 $(($NUMBER_OF_FILES + 4)) \
+
+	whiptail --title 'git delete' --checklist "Files with their size that might be removed. Files size marked with * exist at current state of the project." $(($NUMBER_OF_FILES + 12)) 90 $(($NUMBER_OF_FILES + 4)) \
 		"${options[@]}" \
 		2> $FILES_TO_REMOVE 
 
@@ -58,5 +77,6 @@ git gc --quiet
 get_biggest_files_hash $NUMBER_OF_FILES
 get_biggest_files_size $NUMBER_OF_FILES
 get_biggest_files_name
+verify_if_files_exist_now
 show_menu
 delete_files
