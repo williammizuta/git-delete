@@ -1,16 +1,20 @@
 #!/bin/sh
 
+#############
+# Variables #
+#############
 PROJECT_HOME=`git rev-parse --show-toplevel`
 NUMBER_OF_FILES=5
 
+#######################
+# Auxiliary functions #
+#######################
 function get_biggest_files_hash() {
-	local hashes=`git verify-pack -v $PROJECT_HOME/.git/objects/pack/*.idx | sort -k 3 -n | tail -$1 | awk '{print $1}'`
-	echo "$hashes"
+	hashes=( `git verify-pack -v $PROJECT_HOME/.git/objects/pack/*.idx | sort -k 3 -n | tail -$1 | awk '{print $1}'` )
 }
 
 function get_biggest_files_size() {
-	local hashes=`git verify-pack -v $PROJECT_HOME/.git/objects/pack/*.idx | sort -k 3 -n | tail -$1 | awk '{print $3}'`
-	echo "$hashes"
+	sizes=( `git verify-pack -v $PROJECT_HOME/.git/objects/pack/*.idx | sort -k 3 -n | tail -$1 | awk '{print $3}'` )
 }
 
 function get_file_name() {
@@ -18,17 +22,20 @@ function get_file_name() {
 	echo "$file_name" 
 }
 
+function get_biggest_files_name() {
+	files=()
+	for hash in ${hashes[@]}; do
+		files+=( `get_file_name $hash` )
+	done
+}
+
 ########
 # main #
 ########
 git gc --quiet
-hashes=( $(get_biggest_files_hash $NUMBER_OF_FILES) )
-sizes=( $(get_biggest_files_size $NUMBER_OF_FILES) )
-
-files=()
-for hash in ${hashes[@]}; do
-	files+=( $(get_file_name $hash) )
-done
+get_biggest_files_hash $NUMBER_OF_FILES
+get_biggest_files_size $NUMBER_OF_FILES
+get_biggest_files_name
 
 for ((i=0; i<$NUMBER_OF_FILES; i++)); do
 	echo ${files[$i]} ${sizes[$i]}
