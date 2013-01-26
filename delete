@@ -1,8 +1,5 @@
 #!/bin/sh
 
-#############
-# Variables #
-#############
 PROJECT_HOME=`git rev-parse --show-toplevel`
 NUMBER_OF_FILES=5
 
@@ -41,6 +38,17 @@ function show_menu() {
 		"${options[@]}" \
 		2> $FILES_TO_REMOVE 
 
+	clear
+}
+
+function delete_file() {
+	echo "$1 removed"
+}
+
+function delete_files() {
+	for file in $( cat $FILES_TO_REMOVE ); do
+		delete_file $file
+	done
 }
 
 ########
@@ -51,3 +59,4 @@ get_biggest_files_hash $NUMBER_OF_FILES
 get_biggest_files_size $NUMBER_OF_FILES
 get_biggest_files_name
 show_menu
+delete_files
