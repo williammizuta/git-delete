@@ -6,6 +6,9 @@
 PROJECT_HOME=`git rev-parse --show-toplevel`
 NUMBER_OF_FILES=5
 
+FILES_TO_REMOVE=$( mktemp )
+trap "rm $FILES_TO_REMOVE" EXIT
+
 #######################
 # Auxiliary functions #
 #######################
@@ -29,6 +32,17 @@ function get_biggest_files_name() {
 	done
 }
 
+function show_menu() {
+	local options=()
+	for ((i=0; i<$NUMBER_OF_FILES; i++)); do
+		options+=("$i" "${files[$i]}" "ON")
+	done
+	whiptail --title 'git delete' --checklist "Select files to be removed" $(($NUMBER_OF_FILES + 12)) 60 $(($NUMBER_OF_FILES + 4)) \
+		"${options[@]}" \
+		2> $FILES_TO_REMOVE 
+
+}
+
 ########
 # main #
 ########
@@ -36,6 +50,7 @@ git gc --quiet
 get_biggest_files_hash $NUMBER_OF_FILES
 get_biggest_files_size $NUMBER_OF_FILES
 get_biggest_files_name
+show_menu
 
 for ((i=0; i<$NUMBER_OF_FILES; i++)); do
 	echo ${files[$i]} ${sizes[$i]}
