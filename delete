@@ -61,6 +61,7 @@ function show_menu() {
 }
 
 function delete_file() {
+	git filter-branch -f --index-filter "git rm --cached --ignore-unmatch $1" --prune-empty -- --all
 	echo "$1 removed"
 }
 
