@@ -71,6 +71,18 @@ function delete_files() {
 	done
 }
 
+function clean_backup_files() {
+	whiptail --title 'git delete' --yesno 'Clean your .git directory?' 8 78
+
+	if [ $? -eq 0 ]; then
+		rm -rf $PROJECT_HOME/.git/refs/original/*
+		git reflog expire --all --expire-unreachable=0
+		git repack -A -d
+		git prune
+		echo "backup_files_removed"
+	fi
+}
+
 ########
 # main #
 ########
@@ -81,3 +93,4 @@ get_biggest_files_name
 verify_if_files_exist_now
 show_menu
 delete_files
+clean_backup_files
