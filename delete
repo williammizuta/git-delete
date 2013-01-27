@@ -61,13 +61,13 @@ function show_menu() {
 }
 
 function delete_file() {
-	git filter-branch -f --index-filter "git rm --cached --ignore-unmatch $1" --prune-empty -- --all
+	git filter-branch -f --original "refs/original/$1" --index-filter "git rm --cached --ignore-unmatch $1" --prune-empty -- --all
 	echo "$1 removed"
 }
 
 function delete_files() {
 	for file in $( cat $FILES_TO_REMOVE ); do
-		delete_file $file
+		delete_file ${file//\"}
 	done
 }
 
