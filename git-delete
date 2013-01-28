@@ -5,8 +5,12 @@
 #######################
 function init() {
 	PROJECT_HOME=`git rev-parse --show-toplevel`
-	NUMBER_OF_FILES=10
+	status=$?
+	if [ $status != 0 ]; then
+		exit $status
+	fi
 
+	NUMBER_OF_FILES=10
 	FILES_TO_REMOVE=$( mktemp )
 	trap "rm $FILES_TO_REMOVE" EXIT
 
