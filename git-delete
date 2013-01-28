@@ -4,9 +4,10 @@
 # Auxiliary functions #
 #######################
 function init() {
-	PROJECT_HOME=`git rev-parse --show-toplevel`
+	PROJECT_HOME=`git rev-parse --show-toplevel 2> /dev/null`
 	status=$?
 	if [ $status != 0 ]; then
+		echo "Warning: you are not in a git repository."
 		exit $status
 	fi
 
