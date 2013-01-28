@@ -1,14 +1,19 @@
 #!/bin/sh
 
-PROJECT_HOME=`git rev-parse --show-toplevel`
-NUMBER_OF_FILES=10
-
-FILES_TO_REMOVE=$( mktemp )
-trap "rm $FILES_TO_REMOVE" EXIT
-
 #######################
 # Auxiliary functions #
 #######################
+function init() {
+	PROJECT_HOME=`git rev-parse --show-toplevel`
+	NUMBER_OF_FILES=10
+
+	FILES_TO_REMOVE=$( mktemp )
+	trap "rm $FILES_TO_REMOVE" EXIT
+
+	git gc --quiet
+	deleted=0
+}
+
 function get_biggest_files_hash() {
 	hashes=( `git verify-pack -v $PROJECT_HOME/.git/objects/pack/*.idx | sort -k 3 -n | tail -$1 | awk '{print $1}'` )
 }
@@ -63,6 +68,7 @@ function show_menu() {
 function delete_file() {
 	git filter-branch -f --original "refs/original/$1" --index-filter "git rm --cached --ignore-unmatch $1" --prune-empty -- --all
 	echo "$1 removed"
+	deleted=1
 }
 
 function delete_files() {
@@ -72,21 +78,23 @@ function delete_files() {
 }
 
 function clean_backup_files() {
-	whiptail --title 'git delete' --yesno 'Clean your .git directory?' 8 78
+	if [ $deleted -eq 1 ]; then
+		whiptail --title 'git delete' --yesno 'Clean your .git directory?' 8 78
 
-	if [ $? -eq 0 ]; then
-		rm -rf $PROJECT_HOME/.git/refs/original/*
-		git reflog expire --all --expire-unreachable=0
-		git repack -A -d
-		git prune
-		echo "backup_files_removed"
+		if [ $? -eq 0 ]; then
+			rm -rf $PROJECT_HOME/.git/refs/original/*
+			git reflog expire --all --expire-unreachable=0
+			git repack -A -d
+			git prune
+			echo "backup_files_removed"
+		fi
 	fi
 }
 
 ########
 # main #
 ########
-git gc --quiet
+init
 get_biggest_files_hash $NUMBER_OF_FILES
 get_biggest_files_size $NUMBER_OF_FILES
 get_biggest_files_name
