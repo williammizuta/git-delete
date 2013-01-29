@@ -71,7 +71,7 @@ function show_menu() {
 }
 
 function delete_file() {
-	git filter-branch -f --original "refs/original/$1" --index-filter "git rm --cached --ignore-unmatch $1" --prune-empty -- --all
+	git filter-branch -f --original "refs/original/$1" --index-filter "git rm --cached --ignore-unmatch $1" --prune-empty -- --all &> /dev/null
 	echo "$1 removed"
 	deleted=1
 }
@@ -88,10 +88,10 @@ function clean_backup_files() {
 
 		if [ $? -eq 0 ]; then
 			rm -rf $PROJECT_HOME/.git/refs/original/*
-			git reflog expire --all --expire-unreachable=0
-			git repack -A -d
-			git prune
-			echo "backup_files_removed"
+			git reflog expire --all --expire-unreachable=0 &> /dev/null
+			git repack -A -d &> /dev/null
+			git prune &> /dev/null
+			echo "Backup files removed."
 		fi
 	fi
 }
